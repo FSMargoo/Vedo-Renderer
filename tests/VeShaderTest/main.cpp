@@ -57,7 +57,7 @@ half4 main(vec2 coord) {
     return half4(array[0], array[1], array[2], array[3]);
 })");
 		shader->Link("Length", 4);
-		auto fileShader = Vedo::Shader::MakeFromFile("./shaderse/vedo_test_shader.sksl");
+		auto fileShader = Vedo::Shader::MakeFromFile("./shaders/vedo_test_shader.sksl");
 		fileShader->Link("Length", 4);
 
 		auto effect		= shader->MakeEffect();

@@ -35,7 +35,7 @@
 namespace Vedo {
 
 VeRegisterException(ShaderInvalidFile, R"(Could not open the shader file "{}")");
-VeRegisterException(ShaderCreateFailure, R"(Could not create the shader file with error:\n{})");
+VeRegisterException(ShaderCreateFailure, "Could not create the shader file with error:\n{}");
 
 /**
  * The shader wrapper for SKSL, it will process the array length
@@ -61,10 +61,11 @@ public:
 		std::string	  temp;
 		std::ifstream stream(Path);
 
-		if (!stream.is_open()) {
+		if (stream.is_open()) {
 			while (!stream.eof()) {
 				std::getline(stream, temp);
 				file.append(temp);
+				file.append("\n");
 			}
 
 			return std::make_unique<Shader>(Shader(file.c_str()));
