@@ -1,6 +1,6 @@
 # Vedo Render
 
-Vedo Render is a path tracer render. Vedo Render based on Skia, gifting Vedo a ability of 2D rendering.
+Vedo Render is a cross-platform path tracer render. Vedo Render based on Skia, gifting Vedo a ability of 2D rendering.
 
 Vedo Render is a toy project for me, it maybe used to reproduce some paper or for some graphics experiments.
 
