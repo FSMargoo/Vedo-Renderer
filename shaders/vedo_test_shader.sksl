@@ -1,0 +1,26 @@
+////////////////////////////////////////////////////////////////
+//  vedo_test_shader.sksl
+//
+//      Descrpition : This shader is a test shader for Vedo
+//                    shader wrapper
+//      Author      : Margoo (margoo@margoo.icu)
+//      Date        : 2024/11/2
+//
+
+// We recommand you to define a variable in SKSL as a replacement
+// of Vedo renderer placeholder
+const int length = $Length$;
+
+uniform float arrayInput[length];
+
+half4 main(vec2 coord) {
+    float array[length];
+    for (int i = 0; i < length; ++i) {
+        array[i] = 0;
+    }
+    for (int i = 0; i < length; ++i) {
+        array[i] += arrayInput[i];
+    }
+
+    return half4(array[0], array[1], array[2], array[3]);
+}
