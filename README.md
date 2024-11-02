@@ -17,7 +17,7 @@ I modified the source code of Skia (Version M101) by adding a `MarcoManager` in 
 
 Command `#define` is for the general Marco function define. `#alias` command is for the alias of a token. 
 
-Hence, SKSL doesn't provide a natural variable length array uniform support. I added a `Vedo::Shader` as a wrapper of SKSL. `Vedo::Shader` accept a variety of SKSL I call it "Vedo Shader".
+Since SKSL doesn't provide a natural variable length array uniform support, I added a `Vedo::Shader` as a wrapper of SKSL. `Vedo::Shader` accept a variant of SKSL I call it "Vedo Shader".
 
 Vedo Shader will process the shader code first, by using `Vedo::Shader::Link` method to bind a constant value with shader. Shader being written in Vedo Shader will be like: 
 
