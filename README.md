@@ -4,7 +4,7 @@ Vedo Render is a cross-platform path tracer render. Vedo Render based on Skia, g
 
 Vedo Render is a toy project for me, it maybe used to reproduce some paper or for some graphics experiments.
 
-## How Vedo Render Come Through the SKSL problems?
+## How did Vedo Render Come Through the SKSL problems?
 
 Vedo Render is based on Skia, however, Skia's native shader language is not strong enough for render developing, so I modified it and apply some features to the SKSL.
 

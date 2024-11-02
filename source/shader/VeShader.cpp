@@ -28,14 +28,14 @@
 #include <include/shader/VeShader.h>
 
 namespace Vedo {
-	Shader::Shader(const char *ShaderCode) : _code(ShaderCode), _linkedCode(ShaderCode) {
-    }
-	sk_sp<SkRuntimeEffect>& Shader::MakeEffect() {
-		auto [instance, error] = SkRuntimeEffect::MakeForShader(SkString(_linkedCode.c_str()));
-		if (!error.isEmpty()) {
-			throw ShaderCreateFailure(error.c_str());
-		}
-
-		return instance;
-	}
+Shader::Shader(const char *ShaderCode) : _code(ShaderCode), _linkedCode(ShaderCode) {
 }
+sk_sp<SkRuntimeEffect> &Shader::MakeEffect() {
+	auto [instance, error] = SkRuntimeEffect::MakeForShader(SkString(_linkedCode.c_str()));
+	if (!error.isEmpty()) {
+		throw ShaderCreateFailure(error.c_str());
+	}
+
+	return instance;
+}
+} // namespace Vedo
