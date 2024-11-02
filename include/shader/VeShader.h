@@ -75,6 +75,15 @@ public:
 
 public:
 	/**
+	 * Clone a new shader from this object
+	 * @return The new shader object reference
+	 */
+	std::unique_ptr<Shader> Clone() {
+		return std::make_unique<Shader>(Shader(_code.c_str()));
+	}
+
+public:
+	/**
 	 * Link the static predefine variable in the shader code
 	 * @tparam DataType The data type of the specified data must support to be converted to
 	 * string by std::to_string
@@ -101,7 +110,7 @@ public:
 			position += tagSize;
 		}
 
-		_code = newCode;
+		_linkedCode = newCode;
 	}
 
 public:
@@ -116,6 +125,7 @@ private:
 	explicit Shader(const char *ShaderCode);
 
 private:
+	std::string _linkedCode;
 	std::string _code;
 };
 } // namespace Vedo
