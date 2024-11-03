@@ -54,6 +54,11 @@ Skia doesn't provide a natively structural uniform variable passing ability, whi
 We created a "fake" uniform bind process, which can be used in SKSL like:
 
 ```GLSL
+struct Sphere {
+    vec3 center;
+    float radius;
+};
+
 // Use the @uniform(array) to pass a array uniform
 // Vedo will generate variable "const int l_test" for the length of the array
 // Vedo also generate variable "const float lf_test" for the length of the array
