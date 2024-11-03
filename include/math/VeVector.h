@@ -22,7 +22,31 @@
 
 /**
  * \file VeVector.h
- * \brief {YOUR BRIEF}
+ * \brief The vector of Vedo Render
  */
- 
- #pragma once
+
+#pragma once
+
+#include <include/skia/VeSkia.h>
+
+#include <cmath>
+
+namespace Vedo {
+/**
+ * The 3D vector in vedo render.
+ */
+using Vec3 = SkV3;
+/**
+ * The 2D vector in vedo render.
+ */
+using Vec2 = SkV2;
+/**
+ * The 3D vector with a parameter in vedo render.
+ */
+using Vec4 = SkV4;
+
+/**
+ * The alias of the vector
+ */
+using Point = Vec3;
+}

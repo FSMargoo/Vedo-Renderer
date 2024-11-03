@@ -22,7 +22,8 @@
 
 /**
  * \file VeRender.h
- * \brief {YOUR BRIEF}
+ * \brief The render class in Vedo
  */
- 
- #pragma once
+
+#pragma once
+

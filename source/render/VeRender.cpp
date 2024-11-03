@@ -22,5 +22,5 @@
 
 /**
  * \file VeRender.cpp
- * \brief {YOUR BRIEF}
+ * \brief The render class in Vedo
  */

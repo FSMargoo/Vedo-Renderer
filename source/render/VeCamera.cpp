@@ -22,5 +22,42 @@
 
 /**
  * \file VeCamera.cpp
- * \brief {YOUR BRIEF}
+ * \brief The camera class in Vedo Render
  */
+
+#include <include/render/VeCamera.h>
+
+namespace Vedo {
+Camera::Camera() {
+	Init();
+}
+void Camera::Init() {
+	Height = Width / Ratio;
+	Height = (Height < 1) ? 1 : Height;
+
+	Center = LookFrom;
+
+	const auto theta		  = FOV * 3.1415926f / 180.f;
+	const auto h			  = tan(theta / 2);
+	const auto viewportHeight = 2 * h * FocusDistance;
+	const auto viewportWidth  = viewportHeight * (static_cast<float>(Width) / Height);
+
+	W = (LookFrom - LookAt).normalize();
+	U = VUP.cross(W).normalize();
+	V = W.cross(U);
+
+	auto viewportU = viewportWidth * U;
+	auto viewportV = viewportHeight * -V;
+
+	PixelDeltaU = viewportU * (1.f / Width);
+	PixelDeltaV = viewportV * (1.f / Height);
+	
+	const auto viewportUpperLeft =
+		Center - (FocusDistance * W) - viewportU * 0.5f - viewportV * 0.5f;
+	Pixel100Loc = viewportUpperLeft + 0.5f * (PixelDeltaU + PixelDeltaV);
+
+	auto defocusRadius = FocusDistance * tan((DeFocusAngle / 2) * 3.1415926f / 180.f);
+	DeFocusDiskU = defocusRadius * U;
+	DeFocusDiskV = defocusRadius * V;
+}
+}

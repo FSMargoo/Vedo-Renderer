@@ -25,11 +25,36 @@
  * \brief The tester for Vedo shader render
  */
 
+#include <include/math/VeVector.h>
 #include <include/shader/VeShader.h>
+
+class Sphere : public Vedo::IShaderStructureUniform {
+public:
+	Sphere() : Center{}, Radius(0) {
+	}
+	Sphere(Vedo::Vec3 ICenter, const float &IFloat) : Center(ICenter), Radius(IFloat) {
+	}
+
+public:
+	std::vector<std::string> PropertyList() override {
+		return {"center", "radius"};
+	}
+	std::map<std::string, std::string> PropertyValue() override {
+		return {{"center", std::format("vec3({}, {}, {})", Center.x, Center.y, Center.z)}, {"radius", std::to_string(Radius)}};
+	}
+	[[nodiscard]] std::string Type() const override {
+		return "Sphere";
+	}
+
+public:
+	Vedo::Vec3 Center;
+	float	   Radius;
+};
 
 int main() {
 	try {
-		auto shader = Vedo::Shader::MakeFromString(R"(////////////////////////////////////////////////////////////////
+		auto shader = Vedo::Shader::MakeFromString(R"(
+////////////////////////////////////////////////////////////////
 //  vedo_test_shader.sksl
 //
 //      Descrpition : This shader is a test shader for Vedo
@@ -41,6 +66,11 @@ int main() {
 const int length = $Length$;
 
 uniform float arrayInput[length];
+
+struct Sphere {
+	vec3 center;
+	float radius;
+};
 
 half4 main(vec2 coord) {
 	float array[length];
@@ -60,7 +90,10 @@ half4 main(vec2 coord) {
 		auto fileShader = Vedo::Shader::MakeFromFile("./shaders/vedo_test_shader.sksl");
 		fileShader->Link("Length", 4);
 
-		auto effect		= shader->MakeEffect();
+		std::vector<Vedo::IShaderStructureUniform*> uniforms = { new Sphere(), new Sphere(Vedo::Vec3(1.f, 12.f, 23.f), 3.f), new Sphere() };
+		fileShader->BindUniform("test", uniforms);
+
+		// auto effect		= shader->MakeEffect();
 		auto fileEffect = fileShader->MakeEffect();
 	} catch (std::exception &e) {
 		printf("Error occurred: %s.", e.what());

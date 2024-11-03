@@ -22,5 +22,11 @@
 
 /**
  * \file VeVector.cpp
- * \brief {YOUR BRIEF}
+ * \brief The vector of Vedo Render
  */
+
+#include <include/math/VeVector.h>
+
+namespace Vedo {
+
+}

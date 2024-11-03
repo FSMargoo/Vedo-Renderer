@@ -28,14 +28,169 @@
 #include <include/shader/VeShader.h>
 
 namespace Vedo {
-Shader::Shader(const char *ShaderCode) : _code(ShaderCode), _linkedCode(ShaderCode) {
+Shader::Shader(const char *ShaderCode) : _code(ShaderCode) {
 }
 sk_sp<SkRuntimeEffect> &Shader::MakeEffect() {
-	auto [instance, error] = SkRuntimeEffect::MakeForShader(SkString(_linkedCode.c_str()));
+	auto linkedCode = Preprocess();
+
+	auto [instance, error] = SkRuntimeEffect::MakeForShader(SkString(linkedCode.c_str()));
 	if (!error.isEmpty()) {
 		throw ShaderCreateFailure(error.c_str());
 	}
 
 	return instance;
+}
+std::string Shader::Preprocess() {
+	stb_lexer	lexer;
+	const char *code = _code.c_str();
+	stb_c_lexer_init(&lexer, code, code + strlen(code), (char *)malloc(0x10000), 0x10000);
+
+	std::string result = "void init_vedo();";
+
+	while (stb_c_lexer_get_token(&lexer)) {
+		if (lexer.token == '@' && stb_c_lexer_get_token(&lexer) && strcmp(lexer.string, "uniform") == 0) {
+			// Skip white space
+			stb_c_lexer_get_token(&lexer);
+			stb_c_lexer_get_token(&lexer);
+			stb_c_lexer_get_token(&lexer);
+			stb_c_lexer_get_token(&lexer);
+			std::string type = lexer.string;
+
+			stb_c_lexer_get_token(&lexer);
+			if (_uniformReplacement.contains(lexer.string)) {
+				auto id		   = lexer.string;
+				auto structure = _uniformReplacement[lexer.string];
+
+				// Add size measure
+				result.append(std::format("\nconst int l_{} = {};\n", id, structure.size()));
+				result.append(std::format("\nconst float lf_{} = {};\n", id, structure.size()));
+
+				// Define variable
+				result.append(std::format("\n{} {}[{}];\n", type, id, structure.size()));
+
+				std::string initBodyCode;
+				for (int count = 0; count < structure.size(); ++count) {
+					auto property = structure[count]->PropertyValue();
+					for (auto &instance : property) {
+						initBodyCode.append(std::format("{}[{}].{} = {};\n", id, count, instance.first, instance.second));
+					}
+				}
+
+				result.append(std::format("void func_init_{}() {{\n {} }}\n", id, initBodyCode));
+			} else {
+				throw ShaderInvalidUniform(lexer.string);
+			}
+
+			stb_c_lexer_get_token(&lexer);
+		} else if (lexer.string[0] == '$' && lexer.token == CLEX_id) {
+			if (_linkReplacement.contains(lexer.string)) {
+				result.append(_linkReplacement[lexer.string]);
+			} else {
+				throw ShaderInvalidVariable(lexer.string);
+			}
+		} else {
+			switch (lexer.token) {
+			case CLEX_id:
+				result.append(lexer.string);
+				break;
+			case CLEX_eq:
+				result.append("==");
+				break;
+			case CLEX_noteq:
+				result.append("!=");
+				break;
+			case CLEX_lesseq:
+				result.append("<=");
+				break;
+			case CLEX_greatereq:
+				result.append(">=");
+				break;
+			case CLEX_andand:
+				result.append("&&");
+				break;
+			case CLEX_oror:
+				result.append("||");
+				break;
+			case CLEX_shl:
+				result.append("<<");
+				break;
+			case CLEX_shr:
+				result.append(">>");
+				break;
+			case CLEX_plusplus:
+				result.append("++");
+				break;
+			case CLEX_minusminus:
+				result.append("--");
+				break;
+			case CLEX_arrow:
+				result.append("->");
+				break;
+			case CLEX_andeq:
+				result.append("&=");
+				break;
+			case CLEX_oreq:
+				result.append("|=");
+				break;
+			case CLEX_xoreq:
+				result.append("^=");
+				break;
+			case CLEX_pluseq:
+				result.append("+=");
+				break;
+			case CLEX_minuseq:
+				result.append("-=");
+				break;
+			case CLEX_muleq:
+				result.append("*=");
+				break;
+			case CLEX_diveq:
+				result.append("/=");
+				break;
+			case CLEX_modeq:
+				result.append("%%=");
+				break;
+			case CLEX_shleq:
+				result.append("<<=");
+				break;
+			case CLEX_shreq:
+				result.append(">>=");
+				break;
+			case CLEX_eqarrow:
+				result.append("=>");
+				break;
+			case CLEX_dqstring:
+				result.append(std::format("\"{}\"", lexer.string));
+				break;
+			case CLEX_sqstring:
+				result.append(std::format("'\"{}\"'", lexer.string));
+				break;
+			case CLEX_charlit:
+				result.append(std::format("'{}'", lexer.string));
+				break;
+			case CLEX_intlit:
+				result.append(std::format("{}", lexer.int_number));
+				break;
+			case CLEX_floatlit:
+				result.append(std::format("{}", lexer.real_number));
+				break;
+			default:
+				result.append(std::format("{}", char(lexer.token)));
+				break;
+			}
+
+			result.append(" ");
+		}
+	}
+
+	result.append("\nvoid init_vedo() {\n");
+	for (auto& uniform : _uniformReplacement) {
+		result.append(std::format("func_init_{}();\n", uniform.first));
+	}
+	result.append("\n}");
+
+	_flushall();
+
+	return result;
 }
 } // namespace Vedo

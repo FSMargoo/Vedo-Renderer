@@ -20,7 +20,15 @@ add_library(libvedo STATIC main.cpp
         include/shader/VeShader.h
         source/shader/VeShader.cpp
         include/skia/VeSkia.h
-        include/VeBase.h)
+        include/VeBase.h
+        include/math/VeVector.h
+        source/math/VeVector.cpp
+        include/render/VeCamera.h
+        source/render/VeCamera.cpp
+        include/render/VeRender.h
+        source/render/VeRender.cpp
+        thirdparty/stb_c_lexer/stb_c_lexer.h
+        thirdparty/stb_c_lexer/stb_c_lexer.cpp)
 
 target_include_directories(libvedo PRIVATE ./include)
 target_include_directories(libvedo PRIVATE ./)

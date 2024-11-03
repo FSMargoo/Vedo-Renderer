@@ -48,6 +48,31 @@ shader->Link("Length", 2);
 auto effect = shader->MakeEffect();
 ```
 
+Skia doesn't provide a natively structural uniform variable passing ability, which is critical for writing a render with SKSL.To solve this issue, in the same mind of solving problems below.
+We created a "fake" uniform bind process, which can be used in SKSL like:
+
+```GLSL
+// Use the @uniform(array) to pass a array uniform
+// Vedo will generate variable "const int l_test" for the length of the array
+// Vedo also generate variable "const float lf_test" for the length of the array
+// but in float form
+@uniform(array)
+Sphere test;
+```
+
+Then everytime a SKSL shader start, should emit the method `init_vedo` like:
+
+```GLSL
+half4 main(vec2 coord) {
+    // When a SKSL start, call init_vedo method for shader initialization
+    init_vedo();
+    
+    ...
+}
+```
+
+`init_vedo` is an automatically generated method which will initialize the whole Vedo Shader environment. (Basically includes uniform array initialize)
+
 In summary, the working flow of the Vedo Shader:
 
 <image src="./readme/SKSL-flow.svg" height="20%"></image>

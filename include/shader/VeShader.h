@@ -30,12 +30,40 @@
 #include <include/VeBase.h>
 #include <include/skia/VeSkia.h>
 
+#include <thirdparty/stb_c_lexer/stb_c_lexer.h>
+
 #include <fstream>
+#include <map>
 
 namespace Vedo {
 
 VeRegisterException(ShaderInvalidFile, R"(Could not open the shader file "{}")");
-VeRegisterException(ShaderCreateFailure, "Could not create the shader file with error:\n{}");
+VeRegisterException(ShaderCreateFailure, "Could not create the shader with error:\n{}");
+VeRegisterException(ShaderInvalidUniform, R"(Vedo Shader : Unknown uniform structure "{}")");
+VeRegisterException(ShaderInvalidVariable, R"(Vedo Shader : Unknown variable "{}")");
+
+/**
+ * The interface for uniform passable structure, when a structure needs to be passed by Vedo
+ * Shader, it must inherit this interface to meet the requirement of the shader maker
+ */
+class IShaderStructureUniform {
+public:
+	/**
+	 * Get the property list of the structure
+	 * @return The property list in std::vector<std::string> type
+	 */
+	virtual std::vector<std::string> PropertyList() = 0;
+	/**
+	 * Get a mapping which provides a map of (Property Name)->(Value in String Format) form
+	 * @return The specified map
+	 */
+	virtual std::map<std::string, std::string> PropertyValue() = 0;
+	/**
+	 * Get the type name of the uniform structure
+	 * @return The type name of the uniform structure
+	 */
+	[[nodiscard]] virtual std::string Type() const = 0;
+};
 
 /**
  * The shader wrapper for SKSL, it will process the array length
@@ -92,26 +120,19 @@ public:
 	 * @param Data The data instance
 	 */
 	template <class DataType> void Link(const char *Tag, const DataType &Data) {
-		const auto tagString = std::format("${}$", Tag);
-		const auto tagSize	 = tagString.size();
+		_linkReplacement[std::format("${}$", Tag)] = std::to_string(Data);
+	}
 
-		auto string	  = std::to_string(Data);
-		auto newCode  = _code;
-
-		size_t position = 0;
-		while (true) {
-			position = newCode.find(tagString, position);
-			if (position == std::string::npos) {
-				break;
-			}
-
-			newCode.erase(position, tagSize);
-			newCode.insert(position, string);
-
-			position += tagSize;
-		}
-
-		_linkedCode = newCode;
+	/**
+	 * Bind an array uniform to the shader
+	 * @tparam UniformType The uniform structure type
+	 * @param Name The name of the structure
+	 * @param arrayList The array list instance
+	 */
+	template<class UniformType>
+		requires std::is_base_of_v<IShaderStructureUniform, UniformType>
+	void BindUniform(const std::string &Name, std::vector<UniformType*> arrayList) {
+		_uniformReplacement[Name] = arrayList;
 	}
 
 public:
@@ -120,13 +141,23 @@ public:
 	 * it will throw a ShaderCreateFailure exception
 	 * @return The SkRuntimeEffect Skia safe pointer reference
 	 */
-	sk_sp<SkRuntimeEffect>& MakeEffect();
+	sk_sp<SkRuntimeEffect> &MakeEffect();
+
+private:
+	/**
+	 * Preprocess the shader code and store in the linked code
+	 * @return The returned preprocessed string
+	 */
+	std::string Preprocess();
 
 private:
 	explicit Shader(const char *ShaderCode);
 
 private:
-	std::string _linkedCode;
 	std::string _code;
+
+private:
+	std::map<std::string, std::string> _linkReplacement;
+	std::map<std::string, std::vector<IShaderStructureUniform*> > _uniformReplacement;
 };
 } // namespace Vedo

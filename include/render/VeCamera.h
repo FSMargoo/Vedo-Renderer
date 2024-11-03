@@ -22,7 +22,57 @@
 
 /**
  * \file VeCamera.h
- * \brief {YOUR BRIEF}
+ * \brief The camera class in Vedo Render
  */
- 
- #pragma once
+
+#pragma once
+
+#include <include/math/VeVector.h>
+
+namespace Vedo {
+/**
+ * The camera of the Vedo Render
+ */
+class Camera {
+public:
+	Camera();
+
+private:
+	/**
+	 * Init the camera
+	 */
+	void Init();
+
+public:
+	float Ratio;
+	float Width;
+	float SPP;
+	float Depth;
+
+	Point LookFrom;
+	Point LookAt;
+	Point VUP;
+
+	float FOV;
+
+	float FocusDistance;
+	float DeFocusAngle;
+
+private:
+	float Height;
+	Point Center;
+
+	Vec3 PixelDeltaU;
+	Vec3 PixelDeltaV;
+	Vec3 Pixel100Loc;
+
+	Vec3 U;
+	Vec3 V;
+	Vec3 W;
+	Vec3 DeFocusDiskU;
+	Vec3 DeFocusDiskV;
+
+public:
+	friend class Render;
+};
+}
