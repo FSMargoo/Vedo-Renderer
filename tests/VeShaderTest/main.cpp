@@ -53,48 +53,15 @@ public:
 
 int main() {
 	try {
-		auto shader = Vedo::Shader::MakeFromString(R"(
-////////////////////////////////////////////////////////////////
-//  vedo_test_shader.sksl
-//
-//      Descrpition : This shader is a test shader for Vedo
-//                    shader wrapper
-//      Author      : Margoo (margoo@margoo.icu)
-//      Date        : 2024/11/2
-//
-
-const int length = $Length$;
-
-uniform float arrayInput[length];
-
-struct Sphere {
-	vec3 center;
-	float radius;
-};
-
-half4 main(vec2 coord) {
-	float array[length];
-	for (int i = 0; i < length; ++i) {
-        array[i] = 0;
-    }
-	for (int i = 0; i < length; ++i) {
-        array[i] += arrayInput[i];
-    }
-    for (int i = 0; i < length; ++i) {
-        array[i] += 1;
-    }
-
-    return half4(array[0], array[1], array[2], array[3]);
-})");
-		shader->Link("Length", 4);
-		auto fileShader = Vedo::Shader::MakeFromFile("./shaders/vedo_test_shader.sksl");
-		fileShader->Link("Length", 4);
-
 		std::vector<Vedo::IShaderStructureUniform*> uniforms = { new Sphere(), new Sphere(Vedo::Vec3(1.f, 12.f, 23.f), 3.f), new Sphere() };
-		fileShader->BindUniform("test", uniforms);
 
-		// auto effect		= shader->MakeEffect();
-		auto fileEffect = fileShader->MakeEffect();
+		auto shader = Vedo::Shader::MakeFromFile("./shaders/vedo_test_shader.sksl");
+
+		// Link and bind the fake array uniform
+		shader->Link("Length", 4);
+		shader->BindUniform("test", uniforms);
+
+		auto effect = shader->MakeEffect();
 	} catch (std::exception &e) {
 		printf("Error occurred: %s.", e.what());
 

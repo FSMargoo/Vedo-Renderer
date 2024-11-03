@@ -4,6 +4,8 @@ Vedo Render is a cross-platform path tracer render. Vedo Render based on Skia, g
 
 Vedo Render is a toy project for me, it maybe used to reproduce some paper or for some graphics experiments.
 
+Vedo Render is still on developing, this readme file is still in updating.
+
 ## How did Vedo Render Come Through the SKSL problems?
 
 Vedo Render is based on Skia, however, Skia's native shader language is not strong enough for render developing, so I modified it and apply some features to the SKSL.
@@ -60,7 +62,46 @@ We created a "fake" uniform bind process, which can be used in SKSL like:
 Sphere test;
 ```
 
-Then everytime a SKSL shader start, should emit the method `init_vedo` like:
+In C++ layer, when you need to bind a uniform structure requires you have a class that inherit the `Vedo::IShaderStructureUniform`, and provide necessary property information like:
+
+```C++
+class Sphere : public Vedo::IShaderStructureUniform {
+public:
+	Sphere() : Center{}, Radius(0) {
+	}
+	Sphere(Vedo::Vec3 ICenter, const float &IFloat) : Center(ICenter), Radius(IFloat) {
+}
+
+public:
+	std::vector<std::string> PropertyList() override {
+		return {"center", "radius"};
+	}
+	std::map<std::string, std::string> PropertyValue() override {
+		return {{"center", std::format("vec3({}, {}, {})", Center.x, Center.y, Center.z)}, {"radius", std::to_string(Radius)}};
+	}
+	[[nodiscard]] std::string Type() const override {
+		return "Sphere";
+	}
+
+public:
+	Vedo::Vec3 Center;
+	float	   Radius;
+};
+```
+
+Then you can bind the uniform value like:
+
+```C++
+std::vector<Vedo::IShaderStructureUniform*> uniforms = { new Sphere(),
+                                                         new Sphere(Vedo::Vec3(1.f, 12.f, 23.f), 3.f),
+                                                         new Sphere() };
+// "test" for the uniform variable name in SKSL
+shader->BindUniform("test", uniforms);
+```
+
+The value assign will happen in the method `init_vedo()`, a automatically generated method by Vedo Shader.
+
+Then everytime a SKSL shader start, should emit the method `init_vedo()` like:
 
 ```GLSL
 half4 main(vec2 coord) {
@@ -71,7 +112,7 @@ half4 main(vec2 coord) {
 }
 ```
 
-`init_vedo` is an automatically generated method which will initialize the whole Vedo Shader environment. (Basically includes uniform array initialize)
+What was mentioned before, `init_vedo()` is an automatically generated method which will initialize the whole Vedo Shader environment. (Basically includes uniform array initialize)
 
 In summary, the working flow of the Vedo Shader:
 
