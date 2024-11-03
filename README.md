@@ -124,3 +124,7 @@ In summary, the working flow of the Vedo Shader:
 <image src="./readme/SKSL-flow.svg" height="20%"></image>
 
 By applying this work flow, Vedo Render successfully come through the shortcomings of Skia and SKSL.
+
+> [!WARNING]\
+> Vedo Shader can't provide an error message in the Vedo Shader layer. Which means what error report you received is the converted SKSL code error, you need to judge where was wrong on yourself! \
+> Vedo Shader's converting may exist bugs. If you found any of them, report to me in the issue blank. That will really help the project a lot!
