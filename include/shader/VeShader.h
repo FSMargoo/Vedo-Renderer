@@ -119,7 +119,7 @@ public:
 	 * @param Tag The tag of the data
 	 * @param Data The data instance
 	 */
-	template <class DataType> void Link(const char *Tag, const DataType &Data) {
+	template <class DataType> void BindUniform(const char *Tag, const DataType &Data) {
 		_linkReplacement[std::format("${}$", Tag)] = std::to_string(Data);
 	}
 
@@ -131,7 +131,7 @@ public:
 	 */
 	template<class UniformType>
 		requires std::is_base_of_v<IShaderStructureUniform, UniformType>
-	void BindUniform(const std::string &Name, std::vector<UniformType*> arrayList) {
+	void BindUniformArray(const std::string &Name, std::vector<UniformType*> arrayList) {
 		_uniformReplacement[Name] = arrayList;
 	}
 

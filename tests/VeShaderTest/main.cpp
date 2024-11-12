@@ -58,8 +58,8 @@ int main() {
 		auto shader = Vedo::Shader::MakeFromFile("./shaders/vedo_test_shader.sksl");
 
 		// Link and bind the fake array uniform
-		shader->Link("Length", 4);
-		shader->BindUniform("test", uniforms);
+		shader->BindUniform("Length", 4);
+		shader->BindUniformArray("test", uniforms);
 
 		auto effect = shader->MakeEffect();
 	} catch (std::exception &e) {

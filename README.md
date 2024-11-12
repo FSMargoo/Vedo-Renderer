@@ -21,7 +21,7 @@ Command `#define` is for the general Marco function define. `#alias` command is 
 
 Since SKSL doesn't provide a natural variable length array uniform support, I added a `Vedo::Shader` as a wrapper of SKSL. `Vedo::Shader` accept a variant of SKSL I call it "Vedo Shader".
 
-Vedo Shader will process the shader code first, by using `Vedo::Shader::Link` method to bind a constant value with shader. Shader being written in Vedo Shader will be like: 
+Vedo Shader will process the shader code first, by using `Vedo::Shader::BindUniform` method to bind a constant value with shader. Shader being written in Vedo Shader will be like: 
 
 ```GLSL
 const int length = $Length$;
@@ -41,11 +41,11 @@ half4 main(vec2 coord) {
 }
 ```
 
-In C++ code, you need to use `Link` method like this:
+In C++ code, you need to use `BindUniform` method like this:
 
 ```C++
 auto shader = Vedo::Shader::MakeFromFile("./shader.sksl");
-shader->Link("Length", 2);
+shader->BindUniform("Length", 2);
 // Get Skia effect object
 auto effect = shader->MakeEffect();
 ```
@@ -101,7 +101,7 @@ std::vector<Vedo::IShaderStructureUniform*> uniforms = { new Sphere(),
                                                          new Sphere(Vedo::Vec3(1.f, 12.f, 23.f), 3.f),
                                                          new Sphere() };
 // "test" for the uniform variable name in SKSL
-shader->BindUniform("test", uniforms);
+shader->BindUniformArray("test", uniforms);
 ```
 
 The value assign will happen in the method `init_vedo()`, a automatically generated method by Vedo Shader.
