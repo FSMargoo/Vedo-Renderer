@@ -28,14 +28,15 @@ add_library(libvedo STATIC main.cpp
         include/render/VeRender.h
         source/render/VeRender.cpp
         thirdparty/stb_c_lexer/stb_c_lexer.h
-        thirdparty/stb_c_lexer/stb_c_lexer.cpp)
+        thirdparty/stb_c_lexer/stb_c_lexer.cpp
+        include/render/VeObject.h)
 
-target_include_directories(libvedo PRIVATE ./include)
-target_include_directories(libvedo PRIVATE ./)
-target_include_directories(libvedo PRIVATE ./thirdparty)
-target_include_directories(libvedo PRIVATE ./thirdparty/SkiaM101Binary)
-target_include_directories(libvedo PRIVATE ./thirdparty/glad/include)
-target_include_directories(libvedo PRIVATE ./thirdparty/OpenString-CMake)
+target_include_directories(libvedo PUBLIC ./include)
+target_include_directories(libvedo PUBLIC ./)
+target_include_directories(libvedo PUBLIC ./thirdparty)
+target_include_directories(libvedo PUBLIC ./thirdparty/SkiaM101Binary)
+target_include_directories(libvedo PUBLIC ./thirdparty/glad/include)
+target_include_directories(libvedo PUBLIC ./thirdparty/OpenString-CMake)
 
 # Judge MSVC compile runtime
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
@@ -155,3 +156,11 @@ target_include_directories(vedoTestShader PRIVATE ./thirdparty)
 target_include_directories(vedoTestShader PRIVATE ./thirdparty/SkiaM101Binary)
 target_include_directories(vedoTestShader PRIVATE ./thirdparty/glad/include)
 target_include_directories(vedoTestShader PRIVATE ./thirdparty/OpenString-CMake)
+
+target_link_libraries(vedoTestScene PRIVATE libvedo)
+target_include_directories(vedoTestScene PRIVATE ./include)
+target_include_directories(vedoTestScene PRIVATE ./)
+target_include_directories(vedoTestScene PRIVATE ./thirdparty)
+target_include_directories(vedoTestScene PRIVATE ./thirdparty/SkiaM101Binary)
+target_include_directories(vedoTestScene PRIVATE ./thirdparty/glad/include)
+target_include_directories(vedoTestScene PRIVATE ./thirdparty/OpenString-CMake)

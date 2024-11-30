@@ -21,52 +21,52 @@
  */
 
 /**
- * \file main.cpp
- * \brief The tester for Vedo shader render
+ * \file VeObject.h
+ * \brief The object of the Vedo renderer
  */
+
+#pragma once
 
 #include <include/math/VeVector.h>
 #include <include/shader/VeShader.h>
 
-class Sphere : public Vedo::IShaderStructureUniform {
-public:
-	Sphere() : Center{}, Radius(0) {
-	}
-	Sphere(Vedo::Vec3 ICenter, const float &IFloat) : Center(ICenter), Radius(IFloat) {
-	}
+namespace Vedo {
+constexpr int LambertMaterial	 = 0;
+constexpr int MetalMaterial		 = 1;
+constexpr int DielectricMaterial = 2;
 
+constexpr int SphereGeometry = 0;
+
+/**
+ * The object of the world object
+ */
+class Object : public IShaderStructureUniform {
 public:
 	std::vector<std::string> PropertyList() override {
-		return {"center", "radius"};
+		return {"Material", "Shape", "Center", "Radius", "Albedo", "Fuzz", "IndexRefraction"};
 	}
 	std::map<std::string, std::string> PropertyValue() override {
-		return {{"center", Vedo::MathUniform::UniformVec3(Center)}, {"radius", std::to_string(Radius)}};
+		return {
+			{ "Material", std::to_string(Material) },
+			{ "Shape", std::to_string(Shape) },
+			{ "Center", MathUniform::UniformVec3(Center) },
+			{ "Radius", std::to_string(Radius) },
+			{ "Albedo", MathUniform::UniformVec3(Albedo) },
+			{ "Fuzz", std::to_string(Fuzz) },
+			{ "IndexRefraction", std::to_string(IndexRefraction) }
+		};
 	}
 	[[nodiscard]] std::string Type() const override {
-		return "Sphere";
+		return "Object";
 	}
 
 public:
-	Vedo::Vec3 Center;
-	float	   Radius;
+	int Material;
+	int Shape;
+	Vec3 Center;
+	Vec3 Albedo;
+	float Radius;
+	float Fuzz;
+	float IndexRefraction;
 };
-
-int main() {
-	try {
-		std::vector<Vedo::IShaderStructureUniform*> uniforms = { new Sphere(), new Sphere(Vedo::Vec3(1.f, 12.f, 23.f), 3.f), new Sphere() };
-
-		auto shader = Vedo::Shader::MakeFromFile("./shaders/tests/vedo_test_shader.sksl");
-
-		// Link and bind the fake array uniform
-		shader->BindUniform("Length", 4);
-		shader->BindUniformArray("test", uniforms);
-
-		auto effect = shader->MakeEffect();
-	} catch (std::exception &e) {
-		printf("Error occurred: %s.", e.what());
-
-		exit(-1);
-	}
-
-	return 0;
-}
+} // namespace Vedo

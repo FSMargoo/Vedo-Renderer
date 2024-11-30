@@ -29,7 +29,7 @@
 
 namespace Vedo {
 Camera::Camera() {
-	Init();
+
 }
 void Camera::Init() {
 	Height = Width / Ratio;

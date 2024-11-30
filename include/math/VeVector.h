@@ -49,4 +49,35 @@ using Vec4 = SkV4;
  * The alias of the vector
  */
 using Point = Vec3;
+
+/**
+ * The static class provide API for uniform variable converting
+ */
+class MathUniform {
+public:
+	/**
+	 * Return the uniform string of a Vec4 structure
+	 * @param Vector The vector to be converted
+	 * @return The uniform string
+	 */
+	static std::string UniformVec4(const Vec4 &Vector) {
+		return std::format("vec4({}, {}, {}, {})", Vector.x, Vector.y, Vector.z, Vector.w);
+	}
+	/**
+	 * Return the uniform string of a Vec3 structure
+	 * @param Vector The vector to be converted
+	 * @return The uniform string
+	 */
+	static std::string UniformVec3(const Vec3 &Vector) {
+		return std::format("vec3({}, {}, {})", Vector.x, Vector.y, Vector.z);
+	}
+	/**
+	 * Return the uniform string of a Vec2 structure
+	 * @param Vector The vector to be converted
+	 * @return The uniform string
+	 */
+	static std::string UniformVec2(const Vec2 &Vector) {
+		return std::format("vec2({}, {})", Vector.x, Vector.y);
+	}
+};
 }

@@ -41,6 +41,7 @@ VeRegisterException(ShaderInvalidFile, R"(Could not open the shader file "{}")")
 VeRegisterException(ShaderCreateFailure, "Could not create the shader with error:\n{}");
 VeRegisterException(ShaderInvalidUniform, R"(Vedo Shader : Unknown uniform structure "{}")");
 VeRegisterException(ShaderInvalidVariable, R"(Vedo Shader : Unknown variable "{}")");
+VeRegisterException(ShaderInvalidImportFile, R"(Vedo Shader : Unknown file importing "{}")");
 
 /**
  * The interface for uniform passable structure, when a structure needs to be passed by Vedo
@@ -137,11 +138,11 @@ public:
 
 public:
 	/**
-	 * Make SkRuntimeEffect by Vedo shader object, when the compiler reports an error about shader
+	 * Make translated code by Vedo shader object, when the compiler reports an error about shader
 	 * it will throw a ShaderCreateFailure exception
-	 * @return The SkRuntimeEffect Skia safe pointer reference
+	 * @return The translated code
 	 */
-	sk_sp<SkRuntimeEffect> &MakeEffect();
+	std::string MakeCode();
 
 private:
 	/**

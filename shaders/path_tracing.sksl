@@ -1,0 +1,218 @@
+struct Camera {
+    float Ratio;
+    float Width;
+    float SPP;
+    float Depth;
+
+    vec3 LookFrom;
+    vec3 LookAt;
+    vec3 VUP;
+
+    float FOV;
+
+    float FocusDistance;
+    float DeFocusAngle;
+
+    float Height;
+    vec3 Center;
+
+    vec3 PixelDeltaU;
+    vec3 PixelDeltaV;
+    vec3 Pixel100Loc;
+
+    vec3 U;
+    vec3 V;
+    vec3 W;
+    vec3 DeFocusDiskU;
+    vec3 DeFocusDiskV; 
+};
+
+struct Ray {
+    vec3 Origin;
+    vec3 Direction;
+};
+
+struct Object {
+    int Material;
+    int Shape;
+    vec3 Center;
+    vec3 Albedo;
+    float Radius;
+    float Fuzz;
+    float IndexRefraction;
+};
+
+float seed = $u_seed$;
+
+float random(float2 uv) {
+    vec2 K1 = vec2(
+        23.14069263277926, // e^pi (Gelfond's constant)
+         2.665144142690225 // 2^sqrt(2) (Gelfondâ€“Schneider constant)
+    );
+    return fract( cos( dot(uv,K1) ) * 12345.6789 );
+}
+
+vec3 randomInUnitDisk(float2 uv) {
+    float rand = random(uv) * 2 - 1;
+    vec3 point = vec3(rand, rand, 0);
+    return point;
+}
+vec3 randomInUnitSphere(float2 uv) {
+    float rand = random(uv);
+    vec3 point = vec3(rand, rand, rand);
+    return vec3(normalize(uv), 1);
+}
+
+vec3 randomUnitVector(float2 uv) {
+    return normalize(randomInUnitSphere(uv));
+}
+
+// Actually we only use the first element of the array
+@uniform(array)
+Camera u_camera;
+
+@uniform(array)
+Object u_object;
+
+struct HitRecord {
+    vec3 Point;
+    vec3 Normal;
+    float T;
+    bool FrontFace;
+    int Material;
+    bool flag;
+};
+
+const int sphereShape = 0;
+const int metalMaterial = 1;
+
+HitRecord SetRecordFaceNormal(HitRecord record, Ray light, vec3 outwardNormal) {
+    record.FrontFace = dot(light.Direction, outwardNormal) < 0;
+    record.Normal = record.FrontFace ? outwardNormal : -outwardNormal;
+
+    return record;
+}
+
+struct ScatterRecord {
+    Ray Ray;
+    vec3 Attenuation;
+    bool Flag;
+};
+
+ScatterRecord MetalScatter(Ray ray, HitRecord record, vec3 attenuation, float fuzz, vec3 albedo, vec2 uv) {
+    ScatterRecord scattered;
+    vec3 forward = reflect(normalize(ray.Direction), record.Normal);
+    scattered.Ray.Origin = record.Point;
+    scattered.Ray.Direction = forward + fuzz * randomUnitVector(uv);
+    scattered.Attenuation = albedo;
+    scattered.Flag = dot(scattered.Ray.Direction, record.Normal) > 0;
+
+    return scattered;
+}
+
+half4 main(vec2 coord) {
+    init_vedo();
+
+    Camera camera = u_camera[0];
+
+    vec3 color = vec3(0);
+
+    for (int count = 0; count < $u_SPP$; ++count) {
+        float offset = float(count) / camera.SPP;
+        // Get Ray
+        vec3 heightVec = camera.PixelDeltaV * coord.y;
+        vec3 widthVec = camera.PixelDeltaU * coord.x;
+        vec3 pixelCenter = camera.Pixel100Loc + widthVec + heightVec;
+        vec2 pointDelta = vec2(-0.5, -0.5) + random(coord + 10.0 * offset);
+        vec3 pixelSample = pixelCenter + pointDelta.x * camera.PixelDeltaU + pointDelta.y * camera.PixelDeltaV;
+
+        Ray ray;
+        ray.Origin = camera.Center;
+        ray.Direction = pixelSample - ray.Origin;
+
+        // Ray Color
+        HitRecord record;
+        record.flag = false;
+        vec3 result = vec3(1);
+        
+        bool flag = false;
+        for (int depth = $u_Depth$; depth >= 0; --depth) {
+            if (depth <= 0) {
+                result = vec3(0, 0, 0);
+
+                break;
+            }
+
+            for (int index = 0; index < $u_ObjectCount$; ++index) {
+                if (u_object[index].Shape == sphereShape) {
+                    vec3 origin = ray.Origin - u_object[index].Center;
+                    float a = pow(length(ray.Direction), 2);
+                    float halfB = dot(origin, ray.Direction);
+                    float c = pow(length(ray.Origin), 2) - pow(u_object[index].Radius, 2);
+                    float delta = pow(halfB, 2) - a * c;
+                    if (delta < 0) {
+                        record.flag = false;
+
+                        continue;
+                    }
+
+                    float sqrtDelta = sqrt(delta);
+                    float root = (-halfB - sqrtDelta) / a;
+                    
+                    // TODO : Variable "root" out of range process
+                    // 0.001, +inf
+                    if (root < 0.001 || root > 9999999) {
+                        root = (halfB - sqrtDelta) / a;
+                        if (root < 0.001 || root > 9999999) {
+                            record.flag = false;
+
+                            continue;
+                        }
+                    }
+
+                    record.T = root;
+                    record.Point = ray.Origin + root * ray.Direction;
+                    record.Material = u_object[index].Material;
+                    vec3 outwardNormal = (record.Point - u_object[index].Center) / u_object[index].Radius;
+                    record = SetRecordFaceNormal(record, ray, outwardNormal);
+
+                    record.flag = true;
+                }
+
+                if (record.flag) {
+                    if (record.Material == metalMaterial) {
+                        ScatterRecord scattered = MetalScatter(ray, record, result, u_object[index].Fuzz, u_object[index].Albedo, coord);
+                        ray = scattered.Ray;
+                        result *= scattered.Attenuation;
+
+                        if (!scattered.Flag) {
+                            break;
+                            result = vec3(0, 1, 0);
+                            flag = true;
+                        }
+                        
+                        break;
+                    }
+                }
+            }
+
+            if (flag) {
+                flag = false;
+                break;
+            }
+
+            if (!record.flag) {
+                vec3 unitDirection = normalize(ray.Direction);
+                float a = 0.5 * (unitDirection.y + 1.0);
+                vec3 skybox = (1.0 - a) * vec3(1) + a * vec3(0.5, 0.7, 1.0);
+                result *= skybox;
+
+                break;
+            }
+        }
+
+        color += result;
+    }
+
+    return half4(color / float($u_SPP$), 1);
+}

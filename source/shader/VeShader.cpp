@@ -30,15 +30,15 @@
 namespace Vedo {
 Shader::Shader(const char *ShaderCode) : _code(ShaderCode) {
 }
-sk_sp<SkRuntimeEffect> &Shader::MakeEffect() {
+std::string Shader::MakeCode() {
 	auto linkedCode = Preprocess();
 
-	auto [instance, error] = SkRuntimeEffect::MakeForShader(SkString(linkedCode.c_str()));
+	auto [instance, error] = std::move(SkRuntimeEffect::MakeForShader(SkString(linkedCode.c_str())));
 	if (!error.isEmpty()) {
 		throw ShaderCreateFailure(error.c_str());
 	}
 
-	return instance;
+	return linkedCode;
 }
 std::string Shader::Preprocess() {
 	stb_lexer	lexer;
@@ -188,6 +188,8 @@ std::string Shader::Preprocess() {
 		result.append(std::format("func_init_{}();\n", uniform.first));
 	}
 	result.append("\n}");
+
+	printf("%s\n", result.c_str());
 
 	_flushall();
 
